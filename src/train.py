@@ -1,6 +1,7 @@
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure the `src` directory is on sys.path so local imports work when running this file directly
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import time
 from environment import Environment
 from population import Population
@@ -28,6 +29,10 @@ def run_training(pop_size=50):
         time.sleep(0.001)
 
 
-if __name__ == "__main__":
+def main():
     run_training()
+
+
+if __name__ == "__main__":
+    main()
 

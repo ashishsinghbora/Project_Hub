@@ -1,5 +1,5 @@
 import pygame
-from src.car import Car
+from car import Car
 
 
 class Environment:
