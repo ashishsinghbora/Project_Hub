@@ -1,12 +1,17 @@
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import time
-from src.population import Population
-from src.storage import init_db, save_generation, save_best_brain
+from environment import Environment
+from population import Population
+from storage import init_db, save_generation, save_best_brain
 
 
 def run_training(pop_size=50):
     init_db()
 
-    population = Population(size=pop_size)
+    env = Environment()
+    population = Population(size=pop_size, env=env)
 
     while True:
         population.update()
@@ -25,40 +30,4 @@ def run_training(pop_size=50):
 
 if __name__ == "__main__":
     run_training()
-from src.environment import Environment
-from src.population import Population
-import csv
-
-env = Environment()
-population = Population(size=100, env=env)
-
-for generation in range(50):
-
-    print(f"\nGeneration {generation}")
-    print(f"Cars in population: {len(population.cars)}")
-
-    for car in population.cars:
-        env.reset()
-        for step in range(500):
-            action = car.think()
-            env.update(action[0], action[1])
-            car.fitness += car.velocity
-
-            if env.done:
-                break
-
-    population.evaluate()
-
-    best_fitness = max(car.fitness for car in population.cars)
-    avg_fitness = sum(car.fitness for car in population.cars) / len(population.cars)
-
-    print(f"Best fitness: {best_fitness}")
-    print(f"Average fitness: {avg_fitness}")
-
-    # Save logs
-    with open("results/logs.csv", "a", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow([generation, best_fitness, avg_fitness])
-
-    population.reproduce(top_k=10)
 

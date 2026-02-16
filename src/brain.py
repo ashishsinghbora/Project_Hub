@@ -3,8 +3,8 @@ import numpy as np
 
 class Brain:
     def __init__(self):
-        # 4 inputs → 8 hidden → 2 outputs
-        self.W1 = np.random.randn(4, 8)
+        # 7 inputs (5 sensors + velocity + angle) → 8 hidden → 2 outputs
+        self.W1 = np.random.randn(7, 8)
         self.W2 = np.random.randn(8, 2)
 
     def forward(self, state):

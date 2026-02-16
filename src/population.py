@@ -9,11 +9,11 @@ class Population:
         self.cars = [Car(spawn_x, spawn_y) for _ in range(size)]
         self.generation = 1
 
-    def update(self):
+    def update(self, bounds=(0, 0, 800, 600)):
         for car in self.cars:
             if getattr(car, "alive", True):
                 throttle, steering = car.think()
-                car.update(throttle, steering)
+                car.update(throttle, steering, bounds)
 
     def all_dead(self):
         return all(not getattr(car, "alive", False) for car in self.cars)
