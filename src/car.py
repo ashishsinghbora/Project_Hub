@@ -1,7 +1,11 @@
-import pygame
+try:
+    import pygame
+except Exception:
+    pygame = None
+
 import math
 import numpy as np
-from src.brain import Brain
+from .brain import Brain
 
 
 class Car:
@@ -9,6 +13,8 @@ class Car:
         # Position
         self.x = x
         self.y = y
+        self.start_x = x
+        self.start_y = y
 
         # Motion
         self.velocity = 0
@@ -30,7 +36,9 @@ class Car:
         self.fitness = 0
         self.alive = True
         self.age = 0
-        self.max_age = 1000
+        self.max_age = 2000  # Increased max age for longer episodes
+        self.distance_traveled = 0
+        self.wall_collisions = 0
 
     def update(self, accelerate, steer, bounds=(0, 0, 800, 600)):
         # Acceleration
@@ -53,17 +61,36 @@ class Car:
         rad = math.radians(self.angle)
 
         # Update position
+        prev_x, prev_y = self.x, self.y
         self.x += self.velocity * math.cos(rad)
         self.y += self.velocity * math.sin(rad)
+        
+        # Track distance traveled
+        dx = self.x - prev_x
+        dy = self.y - prev_y
+        self.distance_traveled += math.sqrt(dx**2 + dy**2)
 
         # Collision detection with boundaries
         min_x, min_y, max_x, max_y = bounds
         if not (min_x <= self.x <= max_x and min_y <= self.y <= max_y):
+            self.wall_collisions += 1
             self.alive = False
 
         # Age / fitness updates
         self.age += 1
-        self.fitness += abs(self.velocity)
+        
+        # Get sensor readings to reward smart navigation
+        ray_length = 150
+        sensors = self.cast_sensor_rays(bounds, num_rays=5, ray_length=ray_length)
+        # Reward: cars that navigate (use steering) to avoid obstacles
+        min_sensor = min(sensors) if sensors else ray_length
+        sensor_reward = (min_sensor / (ray_length or 1)) * 10  # Bonus for staying away from walls
+        
+        # Fitness: distance + age + smart navigation - collision penalty
+        self.fitness = (self.distance_traveled + 
+                       (self.age * 0.3) + 
+                       sensor_reward -
+                       (self.wall_collisions * 100))
 
         if self.age > self.max_age:
             self.alive = False

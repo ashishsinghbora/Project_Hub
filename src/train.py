@@ -1,10 +1,7 @@
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import time
-from environment import Environment
-from population import Population
-from storage import init_db, save_generation, save_best_brain
+from src.environment import Environment
+from src.population import Population
+from src.storage import init_db, save_generation, save_best_brain
 
 
 def run_training(pop_size=50):

@@ -1,4 +1,8 @@
-import pygame
+try:
+    import pygame
+except Exception:
+    pygame = None
+
 from src.car import Car
 
 
