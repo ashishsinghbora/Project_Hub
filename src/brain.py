@@ -33,9 +33,8 @@ class Brain:
         b.W1 = data["W1"]
         b.W2 = data["W2"]
         return b
-import numpy as np
 
-class Brain:
+class Car_brain(Brain):
     def __init__(self, input_size=4, hidden_size=8, output_size=2):
         self.w1 = np.random.randn(input_size, hidden_size)
         self.w2 = np.random.randn(hidden_size, output_size)
@@ -54,3 +53,4 @@ class Brain:
         new.w1 = self.w1.copy()
         new.w2 = self.w2.copy()
         return new
+
