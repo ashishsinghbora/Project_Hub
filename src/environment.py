@@ -1,5 +1,9 @@
-import pygame
-from car import Car
+try:
+    import pygame
+except Exception:
+    pygame = None
+
+from src.car import Car
 
 
 class Environment:

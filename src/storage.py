@@ -1,6 +1,7 @@
 import sqlite3
 import numpy as np
 from pathlib import Path
+from src.brain import Brain
 
 
 DB_PATH = Path("training.db")

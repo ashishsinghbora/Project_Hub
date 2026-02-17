@@ -1,11 +1,7 @@
-import sys
-import os
-# Ensure the `src` directory is on sys.path so local imports work when running this file directly
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import time
-from environment import Environment
-from population import Population
-from storage import init_db, save_generation, save_best_brain
+from src.environment import Environment
+from src.population import Population
+from src.storage import init_db, save_generation, save_best_brain
 
 
 def run_training(pop_size=50):
@@ -29,10 +25,6 @@ def run_training(pop_size=50):
         time.sleep(0.001)
 
 
-def main():
-    run_training()
-
-
 if __name__ == "__main__":
-    main()
+    run_training()
 
