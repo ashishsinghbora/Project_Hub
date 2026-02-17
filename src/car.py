@@ -19,53 +19,81 @@ class Car:
         # Motion
         self.velocity = 0
         self.angle = 0
+        self.steering_angle = 0  # Current steering angle (for smoothing)
 
-        # Physics constants
-        self.acceleration_rate = 0.3
-        self.max_speed = 10
-        self.friction = 0.03
-        self.steering_rate = 4
+        # Physics constants - realistic RC car behavior
+        self.acceleration_rate = 0.5  # Progressive acceleration
+        self.max_speed = 12  # Realistic top speed
+        self.max_reverse_speed = 5  # Reverse is much slower
+        self.friction = 0.08  # Tire rolling resistance
+        self.air_resistance = 0.02  # Aerodynamic drag
+        self.braking_force = 0.25  # Strong braking
+        self.steering_limit = 35  # Max steering angle in degrees
+        self.steering_smoothing = 0.8  # Faster servo response (80% per frame = very responsive)
 
         # Visual
         self.width = 60
         self.height = 30
         self.color = (200, 0, 0)
 
+        # Physical dimensions
+        self.wheelbase = 35  # Distance between front and rear axles
+        self.weight = 1.0  # For momentum calculations
+        
+        # Traction circle limits - can't do full acceleration AND full steering
+        self.max_traction = 1.0  # Total available grip
+        
         # AI
         self.brain = Brain()
         self.fitness = 0
         self.alive = True
         self.age = 0
-        self.max_age = 2000  # Increased max age for longer episodes
+        self.max_age = 2000
         self.distance_traveled = 0
         self.wall_collisions = 0
 
     def update(self, accelerate, steer, bounds=(0, 0, 800, 600)):
-        # Acceleration
-        self.velocity += accelerate * self.acceleration_rate
+        # ===== ACCELERATION & BRAKING =====
+        if accelerate > 0:
+            throttle_force = accelerate * self.acceleration_rate
+            speed_factor = 1.0 - (abs(self.velocity) / self.max_speed) * 0.4
+            self.velocity += throttle_force * speed_factor
+        elif accelerate < 0:
+            self.velocity += accelerate * self.braking_force
+        
+        # Friction and air resistance
+        friction_force = self.friction + (self.air_resistance * abs(self.velocity))
+        self.velocity *= (1 - friction_force)
 
-        # Friction
-        self.velocity -= self.friction * self.velocity
+        # Clamp speeds
+        self.velocity = max(-self.max_reverse_speed, min(self.velocity, self.max_speed))
 
-        # Clamp speed
-        if self.velocity > self.max_speed:
-            self.velocity = self.max_speed
-        if self.velocity < -self.max_speed / 2:
-            self.velocity = -self.max_speed / 2
+        # ===== STEERING - SIMPLE AND EFFECTIVE =====
+        # Smooth steering input (servo response)
+        target_steering_angle = steer * self.steering_limit
+        self.steering_angle += (target_steering_angle - self.steering_angle) * self.steering_smoothing
 
-        # Steering (only if moving)
-        if abs(self.velocity) > 0.1:
-            self.angle += steer * self.steering_rate * (self.velocity / self.max_speed)
-
-        # Convert to radians
+        # Apply steering rotation - works at all speeds including stopped
+        # Direct proportional turning: steering_angle drives rotation rate
+        steering_fraction = self.steering_angle / self.steering_limit  # -1.0 to 1.0
+        
+        if abs(self.velocity) > 0.05:
+            # Moving: turn proportional to velocity and steering
+            turn_rate = steering_fraction * self.velocity * 0.25
+            self.angle += turn_rate
+        else:
+            # Standing still: can still turn in place at reduced rate
+            turn_rate = steering_fraction * 1.5
+            self.angle += turn_rate
+        
+        # ===== POSITION UPDATE =====
         rad = math.radians(self.angle)
-
-        # Update position
+        
         prev_x, prev_y = self.x, self.y
         self.x += self.velocity * math.cos(rad)
         self.y += self.velocity * math.sin(rad)
         
-        # Track distance traveled
+        # Distance tracking
         dx = self.x - prev_x
         dy = self.y - prev_y
         self.distance_traveled += math.sqrt(dx**2 + dy**2)
